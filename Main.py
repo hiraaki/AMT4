@@ -1,7 +1,33 @@
 from PIL import Image
 import numpy as np
+import pandas as pd
 
-image_file = Image.open("img_52.jpg")  # open colour image
+fields = ''
+for i in range(16):
+    if i != 15:
+        fields += (('a'+i.__str__())+',')
+    else:
+        fields += ('a' + i.__str__())+',c\n'
+
+fields2 = ''
+for i in range(784):
+    if i != 783:
+        fields2 += (('a'+i.__str__())+',')
+    else:
+        fields2 += ('a' + i.__str__())+',c\n'
+
+with open("Base1.csv", "a") as fp:
+    fp.write(fields)
+    print(fields)
+    fp.close()
+
+with open("Base2.csv", "a") as fp:
+    fp.write(fields2)
+    print(fields2)
+    fp.close()
+
+
+image_file = Image.open("img_1.jpg")  # open colour image
 image_file = image_file.convert('1')  # convert image to black and white
 image_file.save('result.png')
 image_M = np.asanyarray(image_file)
@@ -61,6 +87,7 @@ print(jump_x, jump_y)
 print(round(jump_x), round(jump_y))
 black = 0
 white = 0
+wb = np.zeros(16)
 for i in range(4):
     for j in range(4):
         for k in range(start_x + round(i * jump_x), start_x + round((i + 1) * jump_x)):
@@ -70,32 +97,39 @@ for i in range(4):
                 else:
                     black = black + 1
         if black == 0:
+            wb[(i*4)+j] = white
             print(black, white, white)
         else:
+            wb[(i*4)+j] = white / black
             print(black, white, white / black)
         black = 0
         white = 0
 
+input = np.genfromtxt(open("Base1.csv", "rb"), delimiter=",", skip_header=1)
+np.append(input)
+np.savetxt('Base1.csv', 'wb')
 # i*4+j
 entry = np.zeros(784)
 
 # setor vidno pela direito ao número
 for i in range(start_x, end_x+1):
-    for j in range(start_y):
+    for j in range(start_y-1):
         entry[(i * 28) + j] = 1
 # setor de cima acima ao número
-for i in range(start_x):
-    for j in range(start_y, end_y):
+for i in range(start_x-1):
+    for j in range(start_y, end_y+1):
         entry[(i * 28) + j] = 8
 # setor vidno pela esquerda ao número
-for i in range(start_x, end_x):
-    for j in range(end_y, 28):
+for i in range(start_x, end_x+1):
+    for j in range(end_y+1, 28):
         entry[(i * 28) + j] = 4
 # setor de baixo abaixo do número
-for i in range(end_x, 28):
-    for j in range(start_y, end_y):
+for i in range(end_x+1, 28):
+    for j in range(start_y, end_y+1):
         entry[(i * 28) + j] = 2
 
+# print(entry)
+# print("------------------------------------------------------")
 for i in range(start_x, end_x+1):
     for j in range(start_y, end_y+1):
         # para direita
@@ -138,9 +172,11 @@ for i in range(start_x, end_x+1):
                 braked = True
                 break
         if not braked:
-            entry[(i * 28) + j] += 4
+            entry[(i * 28) + j] += 2
 
+        if image_M[i][j]:
+            entry[(i * 28) + j] += 16
 
-
-
-
+# print(entry)
+# print(entry.max())
+pd.DataFrame(entry).to_csv("base1.csv")
