@@ -125,6 +125,6 @@ for cla in range(10):
             # classssssssssssssssss
             df2e = pd.DataFrame([wb], columns=fields)
             df2 = df2.append(df2e, ignore_index=True)
-            df2.to_csv('Base2.csv')
+            df2.to_csv('ct\\Base2.csv')
 
 
